@@ -21,9 +21,11 @@
       <div
         class="flex bg-blue-900 rounded-[31.5px] p-[7.5px] items-center text-preset-3-font-1-mobile md:text-preset-3-font-1 font-bold">
         <template x-for="(mode, index) in modes" :key="index">
-          <div :class="{
-              'bg-red-400 rounded-[26.5px]': currMode == mode
-            }" @click="
+          <div
+           :class="{
+              'rounded-[26.5px]': currMode === mode,
+              [colors.find(c => c.name === selectedColor).class]: currMode === mode
+          }" @click="
               currMode = mode;
               switchTab()
             ">
@@ -32,18 +34,6 @@
             }" class="px-[23px] py-[15px] text-blue-100 opacity-40" x-text="mode"></p>
           </div>
         </template>
-
-
-
-        <!-- <div class="bg-red-400 rounded-[26.5px] ">
-          <p class="px-[23px] py-[15px]">pomodoro</p>
-        </div> -->
-        <!-- <div>
-          <p class="px-[23px] py-[15px] text-blue-100 opacity-[0.4]">short break</p>
-        </div> -->
-        <!-- <div>
-          <p class="px-[23px] py-[15px] text-blue-100 opacity-[0.4]">long break</p>
-        </div> -->
       </div>
     </section>
     <!-- Timer -->
@@ -52,13 +42,28 @@
         class="min-w-[300px] min-h-[300px] md:w-[410px] md:h-[410px] rounded-full bg-brand-gradient items-center flex flex-col justify-center drop-shadow-[-50px_-50px_100px_#272C5A] drop-shadow-[50px_50px_100px_#272C5A]">
         <div
           class="min-w-[267.8px] min-h-[267.8px] bg-blue-900 rounded-full justify-center items-center flex flex-col md:w-[366px] md:h-[366px]">
-          <div
-            class="min-w-[248.05px] min-h-[248.05px] rounded-full bg-red-400 items-center justify-center flex flex-col md:w-[339px] md:h-[339px]">
-            <div class="flex flex-col items-center justify-center font-bold text-white">
-              
-              <p x-text="currTimer" class="text-preset-1-font-1-mobile">17:59</p>
-              
-              <p class="text-preset-2-font-1-mobile">PAUSE</p>
+          <div @click="toggleTimer" class="relative">
+            <svg class="w-[230.05px] md:w-[339px]" viewBox="0 0 249 249">
+              <circle cx="124.5" cy="124.5" r="120" fill="none" :stroke="{
+                  red: '#F87070',
+                  cyan: '#70F3F8',
+                  purple: '#D881F8'
+              }[selectedColor]" stroke-width="8" stroke-linecap="round" stroke-dasharray="754"
+                :stroke-dashoffset="progress" transform="rotate(-90 124.5 124.5)" />
+            </svg>
+            <div
+              class="flex absolute top-15 left-6.5 md:top-23 md:left-14 flex-col items-center text-center justify-center font-bold text-white">
+              <p x-text="formattedTimer" :class="{
+                'text-preset-1-font-1-mobile md:text-preset-1-font-1': font === 1,
+                'text-preset-1-font-2-mobile md:text-preset-1-font-2': font === 2,
+                'text-preset-1-font-3-mobile md:text-preset-1-font-3': font === 3
+              }" class="font-bold text-white"></p>
+              <p :class="{
+                  'text-preset-2-font-1-mobile md:text-preset-2-font-1': font === 1,
+                  'text-preset-2-font-2-mobile md:text-preset-2-font-2': font === 2,
+                  'text-preset-2-font-3-mobile md:text-preset-2-font-3': font === 3
+              }" x-text="!isRunning ? 'START' : 'PAUSE'" class="font-bold text-white">
+              </p>
             </div>
           </div>
         </div>
@@ -89,16 +94,13 @@
           <div class="w-[281px] md:w-[468px] flex flex-col">
             <div class="flex flex-col gap-[16px] md:items-start items-center">
               <p class="text-[11px] tracking-[4.23px] font-kumbh-sans font-bold">TIME (MINUTES)</p>
-
-              <!-- TODO -->
-
               <div
                 class="grid grid-cols-2 md:grid-cols-none md:grid-rows-2 md:items-end md:grid-flow-col md:gap-[24px] items-center gap-[8px]">
                 <!-- POMODORO -->
                 <p class="text-preset-4-setting font-bold opacity-[0.4]">pomodoro</p>
                 <div
                   class="flex items-center justify-between rounded-[10px] md:w-[140px] bg-blue-50 px-[16px] py-[11.5px]">
-                  <input type="number" value="25" min="0" max="100"
+                  <input x-model="pomodoroTimer" type="number" min="0" max="100"
                     class="bg-transparent w-[140px] md:w-full text-[#23254B] outline-none appearance-none" />
                   <div class="flex flex-col gap-[6px]">
                     <button class="group">
@@ -113,7 +115,7 @@
                 <p class="text-preset-4-setting font-bold opacity-[0.4]">short break</p>
                 <div
                   class="flex items-center justify-between md:w-[140px] rounded-[10px] bg-blue-50 px-[16px] py-[11.5px]">
-                  <input type="number" value="25" min="0" max="100"
+                  <input type="number" x-model="shortBreakTimer" min="0" max="100"
                     class="bg-transparent w-[140px] md:w-full text-[#23254B] outline-none appearance-none" />
                   <div class="flex flex-col gap-[6px]">
                     <button class="group">
@@ -128,7 +130,7 @@
                 <p class="text-preset-4-setting font-bold opacity-[0.4]">long break</p>
                 <div
                   class="flex items-center justify-between md:w-[140px] rounded-[10px] bg-blue-50 px-[16px] py-[11.5px]">
-                  <input type="number" value="25" min="0" max="100"
+                  <input type="number" x-model="longBreakTimer" min="0" max="100"
                     class="bg-transparent w-[140px] md:w-full text-[#23254B] outline-none appearance-none" />
                   <div class="flex flex-col gap-[6px]">
                     <button class="group">
@@ -150,18 +152,27 @@
             <p class="text-[11px] tracking-[4.23px] font-kumbh-sans font-bold">FONT</p>
             <div class="flex flex-row gap-[16px]">
               <!-- font 1 -->
-              <div class="w-[40px] h-[40px] rounded-full bg-black items-center justify-center flex">
-                <p class="text-preset-2-font-1-setting text-white">Aa</p>
+              <div @click="font = 1" :class="font === 1 ? 'bg-black text-white' : 'bg-blue-50'"
+                class="w-[40px] h-[40px] rounded-full flex items-center justify-center cursor-pointer">
+                <p class="text-preset-2-font-1-setting">
+                  Aa
+                </p>
               </div>
 
               <!-- font 2 -->
-              <div class="w-[40px] h-[40px] rounded-full bg-blue-50 items-center justify-center flex">
-                <p class="text-preset-2-font-2-setting">Aa</p>
+              <div @click="font = 2" :class="font === 2 ? 'bg-black text-white' : 'bg-blue-50'"
+                class="w-[40px] h-[40px] rounded-full flex items-center justify-center cursor-pointer">
+                <p class="text-preset-2-font-2-setting">
+                  Aa
+                </p>
               </div>
 
               <!-- font 3 -->
-              <div class="w-[40px] h-[40px] rounded-full bg-blue-50 items-center justify-center flex">
-                <p class="text-preset-2-font-3-setting">Aa</p>
+              <div @click="font = 3" :class="font === 3 ? 'bg-black text-white' : 'bg-blue-50'"
+                class="w-[40px] h-[40px] rounded-full flex items-center justify-center cursor-pointer">
+                <p class="text-preset-2-font-3-setting">
+                  Aa
+                </p>
               </div>
 
             </div>
@@ -173,21 +184,25 @@
           <div class="flex flex-col items-center gap-[16px] mb-[58px] md:flex-row md:gap-[243px] ">
             <p class="text-[11px] tracking-[4.23px] font-kumbh-sans font-bold">COLOR</p>
             <div class="flex flex-row gap-[16px]">
-              <!-- color 1 -->
-              <div class="bg-red-400 rounded-full h-[40px] w-[40px] items-center justify-center flex"><img
-                  src="./assets/Path 2.svg" alt=""></div>
-              <!-- color 2 -->
-              <div class="bg-cyan-400 rounded-full h-[40px] w-[40px] items-center justify-center flex"></div>
-              <!-- color 3 -->
-              <div class="bg-purple-400 rounded-full h-[40px] w-[40px] items-center justify-center flex"></div>
+              <div>
+                <div class="flex gap-4">
+                  <template x-for="color in colors" :key="color.name">
+                    <button @click="selectedColor = color.name"
+                      class="h-10 w-10 rounded-full flex items-center justify-center" :class="color.class">
+                      <img x-show="selectedColor === color.name" src="./assets/Path 2.svg" alt="">
+                    </button>
+                  </template>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         <div class="absolute -bottom-[27px]">
-          <button
-            class="py-[16.5px] px-[46.5px] bg-red-400 rounded-[26.5px] text-white font-bold text-preset-2-font-1-setting"
-            id="button">Apply</button>
+          <button @click="applySettings()"
+            class="py-[16.5px] px-[46.5px] bg-red-400 rounded-[26.5px] text-white font-bold text-preset-2-font-1-setting">
+            Apply
+          </button>
         </div>
 
       </section>
@@ -198,6 +213,10 @@
     function app() {
       return {
         open: false,
+        font: 1,
+        color: 1,
+        isRunning: false,
+        interval: null,
         toggleModal() {
           this.open = !this.open
         },
@@ -205,19 +224,63 @@
         pomodoroTimer: 25,
         shortBreakTimer: 5,
         longBreakTimer: 15,
+        progress: 0,
+        currTimer: 0,
 
-        currTimer: 25,
         currMode: "pomodoro",
         modes: ["pomodoro", "short break", "long break"],
 
+        get formattedTimer() {
+          const minutes = Math.floor(this.currTimer / 60);
+          const seconds = this.currTimer % 60;
+
+          return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
+        },
+
+
+        selectedColor: 'red',
+        colors: [
+          { name: 'red', class: 'bg-red-400' },
+          { name: 'cyan', class: 'bg-cyan-400' },
+          { name: 'purple', class: 'bg-purple-400' },
+        ],
+
         switchTab() {
-          if (this.currMode == "pomodoro"){
-            this.currTimer = this.pomodoroTimer
-          } else if(this.currMode == "short break"){
-            this.currTimer = this.shortBreakTimer
-          } else if (this.currMode == "long break"){
-            this.currTimer = this.longBreakTimer
+          if (this.currMode === "pomodoro") {
+            this.currTimer = this.pomodoroTimer * 60;
+          } else if (this.currMode === "short break") {
+            this.currTimer = this.shortBreakTimer * 60;
+          } else {
+            this.currTimer = this.longBreakTimer * 60;
           }
+        },
+        applySettings() {
+          this.switchTab();
+          this.open = false;
+        },
+
+        toggleTimer() {
+          if (this.isRunning) {
+            // Pause
+            clearInterval(this.interval);
+            this.interval = null;
+            this.isRunning = false;
+            return;
+          }
+          inc = 754 / this.currTimer
+          // Start
+          this.isRunning = true;
+          this.interval = setInterval(() => {
+            if (this.currTimer > 0) {
+              this.currTimer--;
+              this.progress += inc
+            } else {
+              clearInterval(this.interval);
+              this.interval = null;
+              this.isRunning = false;
+              this.progress = 0
+            }
+          }, 1000);
         }
 
       }
